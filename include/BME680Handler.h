@@ -16,7 +16,7 @@
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 #define SAMPLING_RATE 5000 // 5000 ms = 5 s
-#define MAX_HISTORY 5
+#define MAX_HISTORY 255
 
 #define stringify(name) #name
 
