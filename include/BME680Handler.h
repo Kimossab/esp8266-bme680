@@ -9,14 +9,14 @@
 #include "LinkedList.h"
 #include "Logger.h"
 
-#define BME_SCK 14
-#define BME_MISO 12
-#define BME_MOSI 13
-#define BME_CS 15
+#define BME_SCK 14  // scl d5
+#define BME_MISO 12 // sdo d6
+#define BME_MOSI 13 // sda d7
+#define BME_CS 15   // cs d8
 #define SEALEVELPRESSURE_HPA (1013.25)
 
 #define SAMPLING_RATE 5000 // 5000 ms = 5 s
-#define MAX_HISTORY 255
+#define MAX_HISTORY 150
 
 #define stringify(name) #name
 

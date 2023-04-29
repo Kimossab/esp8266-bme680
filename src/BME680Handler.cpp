@@ -22,16 +22,17 @@ BMEHandler::BMEHandler() : Logger("BMEHandler")
   {
     log("Could not find a valid BME680 sensor, check wiring!");
   }
-
-  bme->setHumidityOversampling(BME680_OS_2X);
-  bme->setTemperatureOversampling(BME680_OS_8X);
-  bme->setPressureOversampling(BME680_OS_4X);
-  bme->setIIRFilterSize(BME680_FILTER_SIZE_3);
-  bme->setGasHeater(320, 150); // 320*C for 150 ms
-
+  else
+  {
+    log("BME begun!");
+    bme->setHumidityOversampling(BME680_OS_2X);
+    bme->setTemperatureOversampling(BME680_OS_8X);
+    bme->setPressureOversampling(BME680_OS_4X);
+    bme->setIIRFilterSize(BME680_FILTER_SIZE_3);
+    bme->setGasHeater(320, 150); // 320*C for 150 ms
+  }
   history = new LinkedList<BmeValue>();
 }
-
 BMEHandler::~BMEHandler()
 {
   delete bme;
@@ -47,7 +48,8 @@ void BMEHandler::update()
   if (!lastUpdate || curTime >= lastUpdate + SAMPLING_RATE)
   {
     lastUpdate = curTime;
-    registerHistory(readValues());
+    BmeValue *values = readValues();
+    registerHistory(values);
     printValues();
   }
 }
@@ -121,7 +123,7 @@ BmeValue *BMEHandler::readValues()
   getLocalTime(&timeInfo);
   time_t timestamp = mktime(&timeInfo);
 
-  bme->beginReading();
+  bme->performReading();
 
   return new BmeValue(
       bme->temperature,
