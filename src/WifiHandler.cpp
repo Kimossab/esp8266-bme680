@@ -1,9 +1,9 @@
 #include "WifiHandler.h"
 
 // public
-WiFiHandler::WiFiHandler(BMEHandler *sensor) : Logger("WifiHandler")
+WiFiHandler::WiFiHandler(BSECHandler *sensor) : Logger("WifiHandler")
 {
-  bme = sensor;
+  bsec = sensor;
   server = new ESP8266WebServer(80);
 
   // WIFI
@@ -30,26 +30,6 @@ WiFiHandler::WiFiHandler(BMEHandler *sensor) : Logger("WifiHandler")
       "/",
       [this]()
       { this->handleHomePage(); });
-  server->on(
-      "/sensor/temperature",
-      [this]()
-      { this->handleGetSensor(temperature); });
-  server->on(
-      "/sensor/humidity",
-      [this]()
-      { this->handleGetSensor(humidity); });
-  server->on(
-      "/sensor/pressure",
-      [this]()
-      { this->handleGetSensor(pressure); });
-  server->on(
-      "/sensor/gas",
-      [this]()
-      { this->handleGetSensor(gas); });
-  server->on(
-      "/sensor/altitude",
-      [this]()
-      { this->handleGetSensor(altitude); });
   server->onNotFound(
       [this]()
       { server->send(404, "text/plain", "Not found"); });
@@ -131,7 +111,7 @@ int WiFiHandler::getBestWifi()
 
 void WiFiHandler::handleHomePage()
 {
-  BmeValue *latestValue = bme->getLatest();
+  BmeValues latestValue = bsec->getData();
 
   String html =
       "<!DOCTYPE html>"
@@ -153,23 +133,19 @@ void WiFiHandler::handleHomePage()
       "<div class=\"sensor\">"
       "<div class=\"name\">Temperature:</div>"
       "<div class=\"value\">" +
-      String(latestValue->temperature, 2) +
+      String(latestValue.temperature, 2) +
       "</div>"
       "<div class=\"name\">Humidity:</div>"
       "<div class=\"value\">" +
-      String(latestValue->humidity, 2) +
+      String(latestValue.humidity, 2) +
       "</div>"
       "<div class=\"name\">Pressure:</div>"
       "<div class=\"value\">" +
-      String(latestValue->pressure, 2) +
+      String(latestValue.pressure, 2) +
       "</div>"
-      "<div class=\"name\">Gas:</div>"
+      "<div class=\"name\">IAQ:</div>"
       "<div class=\"value\">" +
-      String(latestValue->gas, 2) +
-      "</div>"
-      "<div class=\"name\">Aprox. Altitude:</div>"
-      "<div class=\"value\">" +
-      String(latestValue->altitude, 2) +
+      String(latestValue.iaq, 2) +
       "</div>"
       "</div>"
       "<canvas id=\"myChart\"></canvas>"
@@ -186,48 +162,11 @@ void WiFiHandler::handleHomePage()
       "    }]"
       "  }"
       "});"
-      ""
-      "const getData = () => {"
-      "  fetch(`/sensor/temperature?timestamp=${latestRecord}`)"
-      "    .then(r => r.json())"
-      "    .then(sensorHistory => {"
-      "      if (sensorHistory.timestamp.length) {"
-      "        chart.data.labels.push(...sensorHistory.timestamp.map("
-      "          timestamp => {"
-      "            const d = new Date(timestamp * 1000);"
-      "            return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`"
-      "          }"
-      "        ));"
-      "        chart.data.datasets[0].data.push(...sensorHistory.sensor);"
-      "        latestRecord = sensorHistory.timestamp[sensorHistory.timestamp.length - 1];"
-      "        chart.update();"
-      "      }"
-      "    });"
-      "};"
-      "getData();"
-      "setInterval(() => getData(), 5000); "
       "</script>"
       "</body>"
       "</html>";
 
   server->send(200, "text/html", html);
-}
-
-void WiFiHandler::handleGetSensor(SensorType sensor)
-{
-  log("Sensor request");
-  String timestampArg = getArgByName("timestamp");
-  unsigned long timestamp = 0;
-  if (timestampArg.length() > 0)
-  {
-    timestamp = std::stoul(timestampArg.c_str(), nullptr, 0);
-  }
-  DynamicJsonDocument doc = bme->getSensorJson(sensor, timestamp);
-  server->setContentLength(CONTENT_LENGTH_UNKNOWN);
-  server->send(200, "text/json");
-  BufferedServerResponse proxy(server);
-  serializeJson(doc, proxy);
-  proxy.flush();
 }
 
 String WiFiHandler::getArgByName(String name)

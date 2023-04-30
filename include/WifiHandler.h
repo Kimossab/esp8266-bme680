@@ -6,17 +6,17 @@
 #include <time.h>
 #include <ArduinoJson.h>
 #include <string>
-#include "BME680Handler.h"
+#include "BSECHandler.h"
 #include "Logger.h"
 #include "BufferedPrintResponse.h"
 
-#define WIFI_NAME "XXXXXX"
-#define WIFI_PASSWORD "XXXXXX"
+#define WIFI_NAME "MEO-45E4F0"
+#define WIFI_PASSWORD "bbbe59a2ae"
 
 class WiFiHandler : Logger
 {
 public:
-  WiFiHandler(BMEHandler *bme);
+  WiFiHandler(BSECHandler *bsec);
   void update();
 
 private:
@@ -24,9 +24,8 @@ private:
 
   int getBestWifi();
   void handleHomePage();
-  void handleGetSensor(SensorType);
   String getArgByName(String name);
-  BMEHandler *bme;
+  BSECHandler *bsec;
 };
 
 #endif

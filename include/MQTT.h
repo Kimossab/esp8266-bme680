@@ -6,30 +6,31 @@
 #include <ESP8266WiFi.h>
 #include <ArduinoJson.h>
 #include "Logger.h"
-#include "BME680Handler.h"
+#include "BSECHandler.h"
 
 #define SERIAL_NUMBER "KimoTest-0001"
+#define BASE_TOPIC "homeassistant/sensor/"
+#define STATE_TOPIC BASE_TOPIC SERIAL_NUMBER "/state"
 
 #define MQTT_UPDATE_RATE 5000
 
 class MQTT : Logger
 {
 public:
-  MQTT(String host, int port, BMEHandler *_bme);
+  MQTT(String host, int port, BSECHandler *_bsec);
   ~MQTT();
   void update();
-  void static callback(char *topic, byte *payload, unsigned int length);
 
 private:
   WiFiClient *wifiClient;
   PubSubClient *mqttClient;
-  BMEHandler *bme;
+  BSECHandler *bsec;
   unsigned long nextConnectionAttempt;
   unsigned long lastUpdate;
   void connect();
   void publishConfiguration();
   String domain;
-  uint16_t port;
+  int port;
 };
 
 #endif
